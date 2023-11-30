@@ -3,15 +3,15 @@ import Product from "../models/productModel.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-import redis from "redis";
+// import redis from "redis";
 
-const redisClient = redis.createClient({
-  url: process.env.REDIS_URL,
-});
+// const redisClient = redis.createClient({
+//   url: process.env.REDIS_URL,
+// });
+// // redisClient.connect();
 // redisClient.connect();
-redisClient.connect();
-redisClient.on("error", (err) => console.log("Redis error: ", err.message));
-redisClient.on("connect", () => console.log("Connected to redis server"));
+// redisClient.on("error", (err) => console.log("Redis error: ", err.message));
+// redisClient.on("connect", () => console.log("Connected to redis server"));
 
 // @desc    Fetch all products
 // @route   GET /api/products
@@ -24,28 +24,28 @@ const getProducts = asyncHandler(async (req, res) => {
     ? { name: { $regex: req.query.keyWord, $options: "i" } }
     : {};
 
-  let keyForCache =
-    String(page) + "#" + String(req.query.keyWord ? req.query.keyWord : "");
+  // let keyForCache =
+  //   String(page) + "#" + String(req.query.keyWord ? req.query.keyWord : "");
 
-  let cachedData = await redisClient.get(keyForCache);
+  // let cachedData = await redisClient.get(keyForCache);
 
-  if (cachedData) {
-    // console.log("present");
-    res.json(JSON.parse(cachedData));
-  } else {
-    // console.log("not present");
-    const count = await Product.countDocuments({ ...keyWord });
-    const products = await Product.find({ ...keyWord })
-      .limit(pageSize)
-      .skip(pageSize * (page - 1));
+  // if (cachedData) {
+  //   // console.log("present");
+  //   res.json(JSON.parse(cachedData));
+  // } else {
+  // console.log("not present");
+  const count = await Product.countDocuments({ ...keyWord });
+  const products = await Product.find({ ...keyWord })
+    .limit(pageSize)
+    .skip(pageSize * (page - 1));
 
-    const responseData = { products, page, pages: Math.ceil(count / pageSize) };
-    await redisClient.set(keyForCache, JSON.stringify(responseData), {
-      EX: 120,
-    });
+  const responseData = { products, page, pages: Math.ceil(count / pageSize) };
+  // await redisClient.set(keyForCache, JSON.stringify(responseData), {
+  //   EX: 120,
+  // });
 
-    res.json(responseData);
-  }
+  res.json(responseData);
+  //}
 });
 
 // @desc    Fetch single product
